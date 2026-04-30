@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monteforte Law — Marketing Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+    .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    select{-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px}
+    .sidebar-tooltip{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:12px;padding:4px 10px;background:#1e293b;color:#fff;font-size:12px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s}
+    .sidebar-btn:hover .sidebar-tooltip{opacity:1}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const {useState,useMemo,useEffect,useRef,useCallback} = React;
+
+    /* ═══════════════════════════════════════════════
+       ICONS — inline SVG paths
+    ═══════════════════════════════════════════════ */
+    const IP={
+      "circle-alert":'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+      "arrow-up":'<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
+      "minus":'<line x1="5" y1="12" x2="19" y2="12"/>',
+      "arrow-down":'<line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>',
+      "circle":'<circle cx="12" cy="12" r="10"/>',
+      "video":'<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+      "filter":'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+      "search":'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+      "calendar":'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      "users":'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      "chevron-down":'<polyline points="6 9 12 15 18 9"/>',
+      "x":'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+      "layout-grid":'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+      "list":'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+      "folder-open":'<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+      "globe":'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+      "share":'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+      "palette":'<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.5-.75 1.5-1.5 0-.39-.15-.74-.38-1.01-.24-.28-.38-.63-.38-1.01 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.17-4.49-9-10-9z"/>',
+      "mic":'<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+      "bar-chart":'<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+      "home":'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+      "plus":'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      "trash":'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+      "check":'<polyline points="20 6 9 17 4 12"/>',
+      "settings":'<circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2m-9-11h2m18 0h2m-3.3-6.7-1.4 1.4M6.7 17.3l-1.4 1.4m0-13.4 1.4 1.4m10.6 10.6 1.4 1.4"/>',
+      "message":'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+      "chevron-up":'<polyline points="18 15 12 9 6 15"/>',
+      "grip":'<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>',
+      "archive":'<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>',
+      "clipboard":'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>',
+      "target":'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+      "external-link":'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+      "edit":'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+      "eye":'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+      "tag":'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+      "trending-up":'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+      "award":'<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+      "link":'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+      "file-text":'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
+      "zap":'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+      "shield":'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+      "alert-triangle":'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      "chevron-right":'<polyline points="9 18 15 12 9 6"/>',
+      "chevron-left":'<polyline points="15 18 9 12 15 6"/>',
+      "copy":'<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    };
+    const Icon=({name,size=16,className=""})=>(
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`inline-block flex-shrink-0 ${className}`} style={{verticalAlign:"middle"}} dangerouslySetInnerHTML={{__html:IP[name]||""}}/>
+    );
+
+    /* ═══════════════════════════════════════════════
+       SHARED CONSTANTS & UTILS
+    ═══════════════════════════════════════════════ */
+    const PRIORITIES=[
+      {id:"urgent",label:"Urgent",bg:"bg-red-100",text:"text-red-700",icon:"circle-alert"},
+      {id:"high",label:"High",bg:"bg-orange-100",text:"text-orange-700",icon:"arrow-up"},
+      {id:"normal",label:"Normal",bg:"bg-yellow-100",text:"text-yellow-700",icon:"minus"},
+      {id:"low",label:"Low",bg:"bg-blue-100",text:"text-blue-700",icon:"arrow-down"},
+      {id:"none",label:"None",bg:"bg-gray-100",text:"text-gray-500",icon:"circle"},
+    ];
+    const P=Object.fromEntries(PRIORITIES.map(p=>[p.id,p]));
+    const TEAM=["Nicole Rego","David Bonilla","Michael Monteforte Jr"];
+    const COLORS_POOL=["#94a3b8","#3b82f6","#8b5cf6","#f59e0b","#22c55e","#e11d48","#0d9488","#d97706","#6366f1","#ec4899"];
+    const gid=()=>"t"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6);
+    const fmtDate=d=>{if(!d)return"—";return new Date(d+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});};
+    const shortDate=d=>{if(!d)return"";return new Date(d+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});};
+
+    const Avatar=({name,sz="sm"})=>{
+      const i=name?name.split(" ").map(n=>n[0]).join(""):"?";
+      const cs=["bg-blue-500","bg-purple-500","bg-pink-500","bg-teal-500","bg-orange-500","bg-indigo-500"];
+      const c=name?cs[name.charCodeAt(0)%cs.length]:"bg-gray-400";
+      const s=sz==="md"?"w-8 h-8 text-sm":"w-6 h-6 text-xs";
+      return <div className={`${s} ${c} rounded-full flex items-center justify-center text-white font-medium flex-shrink-0`} title={name}>{i}</div>;
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — Constants & Config
+    ═══════════════════════════════════════════════ */
+    const DASHBOARDS=[
+      {id:"overview",name:"Overview",icon:"home",color:"from-gray-600 to-gray-800",accent:"#475569"},
+      {id:"google-ads",name:"Google Ads",icon:"bar-chart",color:"from-green-500 to-emerald-600",accent:"#059669"},
+      {id:"videos",name:"Videos",icon:"video",color:"from-rose-500 to-pink-600",accent:"#e11d48"},
+      {id:"webinars",name:"Webinars",icon:"mic",color:"from-violet-500 to-purple-600",accent:"#7c3aed"},
+      {id:"website",name:"Website Content",icon:"globe",color:"from-teal-500 to-cyan-600",accent:"#0d9488"},
+      {id:"social",name:"Social Media",icon:"share",color:"from-blue-500 to-indigo-600",accent:"#3b82f6"},
+      {id:"campaigns",name:"Campaigns & Branding",icon:"palette",color:"from-amber-500 to-orange-600",accent:"#d97706"},
+    ];
+    const DB=Object.fromEntries(DASHBOARDS.map(d=>[d.id,d]));
+
+    const DEFAULT_CONFIGS={
+      "google-ads":{columns:[
+        {id:"ga1",name:"To Do",color:"#94a3b8",archived:false},
+        {id:"ga2",name:"In Progress",color:"#3b82f6",archived:false},
+        {id:"ga3",name:"Optimizing",color:"#8b5cf6",archived:false},
+        {id:"ga4",name:"Completed",color:"#22c55e",archived:true},
+      ]},
+      "videos":{columns:[
+        {id:"v1",name:"To Do",color:"#94a3b8",archived:false},
+        {id:"v2",name:"Filmed",color:"#3b82f6",archived:false},
+        {id:"v3",name:"Editing",color:"#8b5cf6",archived:false},
+        {id:"v4",name:"Finished",color:"#22c55e",archived:true},
+        {id:"v5",name:"Published",color:"#059669",archived:true},
+      ]},
+      "webinars":{columns:[
+        {id:"w1",name:"Planning",color:"#94a3b8",archived:false},
+        {id:"w2",name:"In Prep",color:"#3b82f6",archived:false},
+        {id:"w3",name:"Scheduled",color:"#8b5cf6",archived:false},
+        {id:"w4",name:"Completed",color:"#22c55e",archived:true},
+      ]},
+      "website":{columns:[
+        {id:"ws1",name:"To Do",color:"#94a3b8",archived:false},
+        {id:"ws2",name:"Drafting",color:"#3b82f6",archived:false},
+        {id:"ws3",name:"In Review",color:"#8b5cf6",archived:false},
+        {id:"ws4",name:"Live",color:"#22c55e",archived:true},
+      ]},
+      "social":{columns:[
+        {id:"s1",name:"Ideas",color:"#94a3b8",archived:false},
+        {id:"s2",name:"Creating",color:"#3b82f6",archived:false},
+        {id:"s3",name:"Scheduled",color:"#8b5cf6",archived:false},
+        {id:"s4",name:"Posted",color:"#22c55e",archived:true},
+      ]},
+      "campaigns":{columns:[
+        {id:"c1",name:"To Do",color:"#94a3b8",archived:false},
+        {id:"c2",name:"In Progress",color:"#3b82f6",archived:false},
+        {id:"c3",name:"In Review",color:"#8b5cf6",archived:false},
+        {id:"c4",name:"Completed",color:"#22c55e",archived:true},
+      ]},
+    };
+
+    const SEED=[
+      {id:"t1",title:"GOOGLE ADS",status:"In Progress",priority:"none",assignees:["Nicole Rego","David Bonilla"],due:null,dashboard:"google-ads",subtasks:[],comments:[]},
+      {id:"t2",title:"Clean Up Google Ads",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"google-ads",subtasks:[],comments:[]},
+      {id:"t3",title:"Create Landing Pages",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"google-ads",subtasks:[],comments:[]},
+      {id:"t4",title:"Quick Videos Before Xmas",status:"To Do",priority:"urgent",assignees:["Michael Monteforte Jr","Nicole Rego","David Bonilla"],due:"2025-12-18",dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t5",title:"Foundational Four NEW Video",status:"Finished",priority:"urgent",assignees:[],due:"2025-05-09",dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t6",title:"Probate Video",status:"Finished",priority:"urgent",assignees:["David Bonilla"],due:"2025-05-09",dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t7",title:"$4M Big Tax — New Rule Bad",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t8",title:"NH Peeps Who Have Homes in MA — LLC",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t9",title:"POA & HCP Video",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t10",title:"Who Should Be Your Trustee",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t11",title:"MA Peeps w/ Out of State RE — LLC = BAD",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t12",title:"4 Step Process Video",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t13",title:"New PAT Video",status:"Filmed",priority:"normal",assignees:["David Bonilla"],due:"2025-05-16",dashboard:"videos",subtasks:[],comments:[]},
+      {id:"t14",title:"Determine if Zoom Follow Up Will Work",status:"Planning",priority:"urgent",assignees:["David Bonilla"],due:"2026-06-05",dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t15",title:"Determine if ZAP Exists for Sign Ups",status:"Planning",priority:"urgent",assignees:["David Bonilla"],due:"2026-06-05",dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t16",title:"Webinar Follow Up Sequence",status:"Planning",priority:"urgent",assignees:["David Bonilla","Nicole Rego"],due:"2026-06-11",dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t17",title:"Legacy 360 Flyer",status:"Completed",priority:"urgent",assignees:["David Bonilla"],due:"2026-06-04",dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t18",title:"Seminar Slides",status:"Completed",priority:"urgent",assignees:["David Bonilla","Nicole Rego"],due:null,dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t19",title:"New Flyers for SPS or Seminar Folder",status:"Completed",priority:"urgent",assignees:["David Bonilla"],due:"2025-04-11",dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t20",title:"Make New Roll Up Poster for Seminars",status:"Completed",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t21",title:"Seminar Slide Edits",status:"Completed",priority:"none",assignees:["Nicole Rego","Michael Monteforte Jr"],due:null,dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t22",title:"Seminar Page",status:"In Prep",priority:"none",assignees:["David Bonilla"],due:null,dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t23",title:"Seminar Invite",status:"Completed",priority:"urgent",assignees:["David Bonilla"],due:"2025-05-09",dashboard:"webinars",subtasks:[],comments:[]},
+      {id:"t24",title:"Mikey",status:"Drafting",priority:"none",assignees:["David Bonilla"],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t25",title:"Populate Homepage Photo",status:"Live",priority:"none",assignees:[],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t26",title:"Schitts Creek Blog",status:"In Review",priority:"normal",assignees:["David Bonilla"],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t27",title:"Nicole R (Bio)",status:"Drafting",priority:"none",assignees:["David Bonilla"],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t28",title:"Catherine (Bio)",status:"Drafting",priority:"none",assignees:["David Bonilla"],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t29",title:"Nicole R. (Page)",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t30",title:"Create PAT Report",status:"To Do",priority:"normal",assignees:[],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t31",title:"Bio Pics",status:"Drafting",priority:"normal",assignees:["David Bonilla"],due:"2026-02-20",dashboard:"website",subtasks:[],comments:[]},
+      {id:"t32",title:"Replace Header Image",status:"To Do",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"website",subtasks:[],comments:[]},
+      {id:"t33",title:"Why I Refuse to Celebrate 'Busy' Anymore",status:"Creating",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t34",title:"You Can't Build a Legacy with Legal Documents Alone",status:"Creating",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t35",title:"My Son's Last Baseball Season Is Teaching Me More Than Any Business Book",status:"Creating",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t36",title:"Here's Why I Don't Work With Everyone",status:"Creating",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t37",title:"This One Sentence Changed How I Lead My Team",status:"Scheduled",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t38",title:"The Worst Advice I Ever Got as a Young Lawyer",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t39",title:"Schedule Out Posts 1 Week Out",status:"Creating",priority:"normal",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t40",title:"LinkedIn Campaign for MM",status:"Creating",priority:"normal",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t41",title:"Post Social Media Photo of Legos",status:"Posted",priority:"high",assignees:["David Bonilla"],due:"2025-03-28",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t42",title:"Biz Ownership",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t43",title:"Success at 25",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t44",title:"Biz Letting Go",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t45",title:"Masterminds",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t46",title:"Biz Systems",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t47",title:"Kids Don't Need Me",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t48",title:"Working Harder",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t49",title:"New Years",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"social",subtasks:[],comments:[]},
+      {id:"t50",title:"Home for Holidays",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-22",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t51",title:"Nicole Ott MH",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-11",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t52",title:"Kraft",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-15",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t53",title:"SNT",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2026-01-02",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t54",title:"What If Your Partner's Spouse Became Your New Business Partner?",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2026-01-07",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t55",title:"Got Divorced?",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-27",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t56",title:"Getting Ready to File a MassHealth",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-17",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t57",title:"What To Do When a Loved One Passes",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-08",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t58",title:"Who's Going to Take Care of Him Now?",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-12-03",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t59",title:"MH",status:"Posted",priority:"none",assignees:["Nicole Rego"],due:"2025-11-25",dashboard:"social",subtasks:[],comments:[]},
+      {id:"t60",title:"Old Office",status:"In Progress",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t61",title:"Special Needs",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t62",title:"Probate",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t63",title:"LTC",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t64",title:"EP",status:"To Do",priority:"none",assignees:[],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t65",title:"Check Pipeline Stages on Intake for Accuracy",status:"To Do",priority:"none",assignees:["Nicole Rego"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t66",title:"Lawmatics Follow Up Sequences",status:"To Do",priority:"high",assignees:["Nicole Rego"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t67",title:"Buyers Remorse Campaign",status:"To Do",priority:"none",assignees:["Nicole Rego","David Bonilla","Michael Monteforte Jr"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t68",title:"Special Needs Marketing Campaign",status:"To Do",priority:"none",assignees:["Nicole Rego","David Bonilla","Michael Monteforte Jr"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t69",title:"Create #4",status:"To Do",priority:"normal",assignees:["David Bonilla"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t70",title:"Finish #3",status:"Completed",priority:"normal",assignees:["David Bonilla"],due:"2025-12-23",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t71",title:"Newspaper Editions",status:"In Review",priority:"normal",assignees:["David Bonilla"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t72",title:"YouTube Re-Branding",status:"In Progress",priority:"urgent",assignees:["Nicole Rego","David Bonilla"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t73",title:"Referral Newsletter w New Layout",status:"Completed",priority:"urgent",assignees:["David Bonilla"],due:"2025-11-24",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t74",title:"Probate Plus Flyer",status:"Completed",priority:"urgent",assignees:["David Bonilla"],due:"2025-11-26",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t75",title:"IRA and PAT Flyer Edits",status:"Completed",priority:"none",assignees:["David Bonilla"],due:"2025-06-13",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t76",title:"Mail Handwritten Notes",status:"Completed",priority:"none",assignees:["Nicole Rego"],due:"2025-05-09",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t77",title:"Order Reports",status:"Completed",priority:"normal",assignees:["David Bonilla"],due:"2025-04-28",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t78",title:"Value Flyer",status:"Completed",priority:"none",assignees:["David Bonilla"],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t79",title:"1/2 PAT & 1/2 IRA Flyer",status:"Completed",priority:"urgent",assignees:["David Bonilla"],due:"2025-04-11",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t80",title:"Write Handwritten Note",status:"Completed",priority:"none",assignees:["Michael Monteforte Jr"],due:"2025-05-02",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t81",title:"Send Email to Follow Up",status:"Completed",priority:"urgent",assignees:["Michael Monteforte Jr"],due:"2025-04-11",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t82",title:"Mail Out Legos & Referral Packet",status:"Completed",priority:"none",assignees:["Nicole Rego"],due:"2025-04-01",dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t83",title:"LEGO Referral Project",status:"Completed",priority:"none",assignees:[],due:null,dashboard:"campaigns",subtasks:[],comments:[]},
+      {id:"t84",title:"Personality Quiz",status:"Completed",priority:"none",assignees:[],due:"2024-06-18",dashboard:"campaigns",subtasks:[],comments:[]},
+    ];
+
+    /* ═══════════════════════════════════════════════
+       PERSISTENCE — Separate keys per section
+    ═══════════════════════════════════════════════ */
+    const SK="mlaw_hub_v2";
+    const CK="mlaw_competitors_v1";
+    const loadProjects=()=>{try{const d=JSON.parse(localStorage.getItem(SK));if(d&&d.tasks)return d;}catch(e){}return{tasks:SEED,configs:DEFAULT_CONFIGS};};
+    const saveProjects=(tasks,configs)=>{try{localStorage.setItem(SK,JSON.stringify({tasks,configs}));}catch(e){}};
+    const loadCompetitors=()=>{try{const d=JSON.parse(localStorage.getItem(CK));if(d)return d;}catch(e){}return{competitors:[],analyses:[]};};
+    const saveCompetitors=(data)=>{try{localStorage.setItem(CK,JSON.stringify(data));}catch(e){}};
+
+    const overdue=(d,status,configs,dash)=>{
+      if(!d||!configs[dash])return false;
+      const col=configs[dash].columns.find(c=>c.name===status);
+      if(col&&col.archived)return false;
+      return new Date(d+"T00:00:00")<new Date(new Date().toDateString());
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — Column Settings Modal
+    ═══════════════════════════════════════════════ */
+    const ColumnSettings=({dashId,configs,onSave,onClose})=>{
+      const [cols,setCols]=useState(()=>configs[dashId]?.columns.map(c=>({...c}))||[]);
+      const update=(idx,key,val)=>setCols(cs=>cs.map((c,i)=>i===idx?{...c,[key]:val}:c));
+      const remove=idx=>setCols(cs=>cs.filter((_,i)=>i!==idx));
+      const add=()=>setCols(cs=>[...cs,{id:gid(),name:"New Status",color:COLORS_POOL[cs.length%COLORS_POOL.length],archived:false}]);
+      const move=(idx,dir)=>{const n=[...cols];const t=n[idx];n[idx]=n[idx+dir];n[idx+dir]=t;setCols(n);};
+      return(
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-50 overflow-y-auto pb-10" onClick={onClose}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4" onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <h2 className="text-base font-bold flex items-center gap-2"><Icon name="settings" size={18}/> Manage Columns — {DB[dashId]?.name}</h2>
+              <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded"><Icon name="x" size={18}/></button>
+            </div>
+            <div className="px-5 py-4 space-y-2 max-h-96 overflow-y-auto">
+              {cols.map((c,i)=>(
+                <div key={c.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <Icon name="grip" size={14} className="text-gray-300"/>
+                  <input type="color" value={c.color} onChange={e=>update(i,"color",e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0 p-0"/>
+                  <input value={c.name} onChange={e=>update(i,"name",e.target.value)} className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:border-blue-400 outline-none"/>
+                  <label className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap cursor-pointer" title="Archived columns are hidden from the board">
+                    <input type="checkbox" checked={c.archived||false} onChange={e=>update(i,"archived",e.target.checked)} className="rounded"/>
+                    <Icon name="archive" size={12}/> Archive
+                  </label>
+                  <div className="flex gap-0.5">
+                    {i>0&&<button onClick={()=>move(i,-1)} className="p-0.5 hover:bg-gray-200 rounded text-gray-400"><Icon name="chevron-up" size={14}/></button>}
+                    {i<cols.length-1&&<button onClick={()=>move(i,1)} className="p-0.5 hover:bg-gray-200 rounded text-gray-400"><Icon name="chevron-down" size={14}/></button>}
+                  </div>
+                  <button onClick={()=>remove(i)} className="p-0.5 hover:bg-red-100 rounded text-red-400 hover:text-red-600"><Icon name="trash" size={14}/></button>
+                </div>
+              ))}
+            </div>
+            <div className="px-5 py-3 border-t flex items-center justify-between">
+              <button onClick={add} className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"><Icon name="plus" size={14}/> Add Column</button>
+              <div className="flex gap-2">
+                <button onClick={onClose} className="px-3 py-1.5 text-sm text-gray-600">Cancel</button>
+                <button onClick={()=>{onSave(dashId,cols);onClose();}} className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — Task Detail Modal
+    ═══════════════════════════════════════════════ */
+    const TaskDetail=({task,configs,onSave,onDelete,onClose})=>{
+      const [t,setT]=useState(()=>({...task,subtasks:[...(task.subtasks||[])],comments:[...(task.comments||[])]}));
+      const [newComment,setNewComment]=useState("");
+      const [commentAuthor,setCommentAuthor]=useState(TEAM[0]);
+      const [confirmDel,setConfirmDel]=useState(false);
+      const [addingSub,setAddingSub]=useState(false);
+      const [newSubTitle,setNewSubTitle]=useState("");
+
+      const dashCols=configs[t.dashboard]?.columns||[];
+      const statusNames=dashCols.map(c=>c.name);
+      const colMap=Object.fromEntries(dashCols.map(c=>[c.name,c]));
+
+      const upd=(k,v)=>setT(prev=>({...prev,[k]:v}));
+      const toggleAssignee=name=>upd("assignees",t.assignees.includes(name)?t.assignees.filter(a=>a!==name):[...t.assignees,name]);
+
+      const addSubtask=()=>{
+        if(!newSubTitle.trim())return;
+        upd("subtasks",[...t.subtasks,{id:gid(),title:newSubTitle.trim(),status:statusNames[0]||"To Do",priority:"none",assignees:[],due:null}]);
+        setNewSubTitle("");setAddingSub(false);
+      };
+      const updSub=(idx,k,v)=>upd("subtasks",t.subtasks.map((s,i)=>i===idx?{...s,[k]:v}:s));
+      const delSub=idx=>upd("subtasks",t.subtasks.filter((_,i)=>i!==idx));
+      const toggleSubAssignee=(idx,name)=>{
+        const sub=t.subtasks[idx];
+        const a=sub.assignees.includes(name)?sub.assignees.filter(x=>x!==name):[...sub.assignees,name];
+        updSub(idx,"assignees",a);
+      };
+      const addComment=()=>{
+        if(!newComment.trim())return;
+        upd("comments",[...t.comments,{id:gid(),text:newComment.trim(),author:commentAuthor,date:new Date().toISOString()}]);
+        setNewComment("");
+      };
+
+      return(
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-6 z-50 overflow-y-auto pb-6" onClick={onClose}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4" onClick={e=>e.stopPropagation()}>
+            <div className="px-6 py-4 border-b">
+              <div className="flex items-start justify-between gap-3">
+                <input value={t.title} onChange={e=>upd("title",e.target.value)} className="flex-1 text-lg font-bold text-gray-900 border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-400 outline-none bg-transparent py-1 px-0" placeholder="Task title..."/>
+                <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded flex-shrink-0"><Icon name="x" size={18}/></button>
+              </div>
+            </div>
+            <div className="px-6 py-4 space-y-5 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+                  <select value={t.status} onChange={e=>upd("status",e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:border-blue-400 outline-none">
+                    {statusNames.map(s=><option key={s} value={s}>{s}{colMap[s]?.archived?" (Archived)":""}</option>)}
+                  </select></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Priority</label>
+                  <select value={t.priority} onChange={e=>upd("priority",e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:border-blue-400 outline-none">
+                    {PRIORITIES.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
+                  </select></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Dashboard</label>
+                  <select value={t.dashboard} onChange={e=>{
+                    const nd=e.target.value;const nc=configs[nd]?.columns||[];
+                    upd("dashboard",nd);
+                    if(!nc.find(c=>c.name===t.status))upd("status",nc[0]?.name||"To Do");
+                  }} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:border-blue-400 outline-none">
+                    {DASHBOARDS.filter(d=>d.id!=="overview").map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Due Date</label>
+                  <div className="flex items-center gap-2">
+                    <input type="date" value={t.due||""} onChange={e=>upd("due",e.target.value||null)} className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none"/>
+                    {t.due&&<button onClick={()=>upd("due",null)} className="text-xs text-red-500">Clear</button>}
+                  </div></div>
+              </div>
+              <div><label className="block text-xs font-semibold text-gray-500 mb-1.5">Assignees</label>
+                <div className="flex flex-wrap gap-2">
+                  {TEAM.map(name=>(<button key={name} onClick={()=>toggleAssignee(name)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${t.assignees.includes(name)?"bg-blue-50 text-blue-700 border-blue-300":"bg-white text-gray-500 border-gray-200 hover:bg-gray-50"}`}><Avatar name={name}/> {name.split(" ")[0]} {t.assignees.includes(name)&&<Icon name="check" size={12}/>}</button>))}
+                </div></div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-gray-500">Sub-tasks ({t.subtasks.length})</label>
+                  <button onClick={()=>setAddingSub(true)} className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-0.5"><Icon name="plus" size={12}/> Add</button>
+                </div>
+                <div className="space-y-2">
+                  {t.subtasks.map((sub,idx)=>(
+                    <div key={sub.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input value={sub.title} onChange={e=>updSub(idx,"title",e.target.value)} className="flex-1 text-sm font-medium bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-400 outline-none"/>
+                        <button onClick={()=>delSub(idx)} className="p-0.5 text-red-400 hover:text-red-600"><Icon name="trash" size={13}/></button>
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <select value={sub.status} onChange={e=>updSub(idx,"status",e.target.value)} className="px-2 py-1 text-xs border border-gray-200 rounded bg-white">{statusNames.map(s=><option key={s} value={s}>{s}</option>)}</select>
+                        <select value={sub.priority} onChange={e=>updSub(idx,"priority",e.target.value)} className="px-2 py-1 text-xs border border-gray-200 rounded bg-white">{PRIORITIES.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}</select>
+                        <input type="date" value={sub.due||""} onChange={e=>updSub(idx,"due",e.target.value||null)} className="px-2 py-1 text-xs border border-gray-200 rounded"/>
+                        <div className="flex gap-1 ml-auto">{TEAM.map(name=>(<button key={name} onClick={()=>toggleSubAssignee(idx,name)} className={`w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 ${sub.assignees?.includes(name)?"border-blue-500":"border-transparent opacity-40 hover:opacity-70"}`} title={name}><Avatar name={name}/></button>))}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {addingSub&&(<div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                    <input value={newSubTitle} onChange={e=>setNewSubTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addSubtask()} placeholder="Sub-task title..." className="flex-1 px-2 py-1.5 text-sm border border-blue-200 rounded bg-white outline-none focus:border-blue-400" autoFocus/>
+                    <button onClick={addSubtask} className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded font-medium">Add</button>
+                    <button onClick={()=>{setAddingSub(false);setNewSubTitle("");}} className="text-xs text-gray-500">Cancel</button>
+                  </div>)}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-2"><Icon name="message" size={13}/> Comments ({t.comments.length})</label>
+                <div className="space-y-2 mb-3">
+                  {t.comments.map(c=>(<div key={c.id} className="p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1"><Avatar name={c.author}/><span className="text-xs font-semibold text-gray-700">{c.author}</span><span className="text-xs text-gray-400">{new Date(c.date).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</span></div>
+                    <p className="text-sm text-gray-700 ml-8">{c.text}</p>
+                  </div>))}
+                </div>
+                <div className="flex gap-2">
+                  <select value={commentAuthor} onChange={e=>setCommentAuthor(e.target.value)} className="px-2 py-2 text-xs border border-gray-200 rounded-lg bg-white flex-shrink-0">{TEAM.map(n=><option key={n} value={n}>{n.split(" ")[0]}</option>)}</select>
+                  <input value={newComment} onChange={e=>setNewComment(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addComment()} placeholder="Add a comment..." className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none"/>
+                  <button onClick={addComment} disabled={!newComment.trim()} className="px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:bg-gray-300 flex-shrink-0">Post</button>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-3 border-t bg-gray-50 rounded-b-xl flex items-center justify-between">
+              <div>{!confirmDel?<button onClick={()=>setConfirmDel(true)} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"><Icon name="trash" size={13}/> Delete</button>:
+                <div className="flex items-center gap-2"><span className="text-xs text-red-600 font-medium">Delete this task?</span>
+                  <button onClick={()=>{onDelete(task.id);onClose();}} className="px-2 py-1 bg-red-600 text-white text-xs rounded">Yes</button>
+                  <button onClick={()=>setConfirmDel(false)} className="px-2 py-1 bg-gray-200 text-xs rounded">No</button>
+                </div>}</div>
+              <div className="flex gap-2">
+                <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
+                <button onClick={()=>{onSave(t);onClose();}} disabled={!t.title.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-semibold rounded-lg">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — New Task Modal
+    ═══════════════════════════════════════════════ */
+    const NewTaskModal=({configs,activeDash,onSave,onClose})=>{
+      const dash=activeDash!=="overview"?activeDash:"campaigns";
+      const [t,setT]=useState({id:gid(),title:"",status:(configs[dash]?.columns[0]?.name)||"To Do",priority:"none",dashboard:dash,assignees:[],due:null,subtasks:[],comments:[]});
+      const upd=(k,v)=>setT(p=>({...p,[k]:v}));
+      const dashCols=configs[t.dashboard]?.columns||[];
+      return(
+        <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-50 overflow-y-auto pb-10" onClick={onClose}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4" onClick={e=>e.stopPropagation()}>
+            <div className="px-5 py-4 border-b"><h2 className="text-base font-bold flex items-center gap-2"><Icon name="plus" size={18}/> New Task</h2></div>
+            <div className="px-5 py-4 space-y-4">
+              <input value={t.title} onChange={e=>upd("title",e.target.value)} placeholder="Task title..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none" autoFocus/>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Dashboard</label>
+                  <select value={t.dashboard} onChange={e=>{upd("dashboard",e.target.value);const nc=configs[e.target.value]?.columns;if(nc)upd("status",nc[0]?.name||"To Do");}} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white">{DASHBOARDS.filter(d=>d.id!=="overview").map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
+                  <select value={t.status} onChange={e=>upd("status",e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white">{dashCols.map(c=><option key={c.name} value={c.name}>{c.name}</option>)}</select></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Priority</label>
+                  <select value={t.priority} onChange={e=>upd("priority",e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white">{PRIORITIES.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}</select></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Due Date</label>
+                  <input type="date" value={t.due||""} onChange={e=>upd("due",e.target.value||null)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg"/></div>
+              </div>
+              <div><label className="block text-xs font-semibold text-gray-500 mb-1">Assignees</label>
+                <div className="flex flex-wrap gap-2">{TEAM.map(name=>(<button key={name} onClick={()=>upd("assignees",t.assignees.includes(name)?t.assignees.filter(a=>a!==name):[...t.assignees,name])} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${t.assignees.includes(name)?"bg-blue-50 text-blue-700 border-blue-300":"bg-white text-gray-500 border-gray-200 hover:bg-gray-50"}`}><Avatar name={name}/> {name.split(" ")[0]} {t.assignees.includes(name)&&<Icon name="check" size={12}/>}</button>))}</div></div>
+            </div>
+            <div className="px-5 py-3 border-t flex justify-end gap-2">
+              <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
+              <button onClick={()=>{if(t.title.trim()){onSave(t);onClose();}}} disabled={!t.title.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-semibold rounded-lg">Add Task</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — Kanban Card
+    ═══════════════════════════════════════════════ */
+    const Card=({task,onClick,showDash,configs})=>{
+      const p=P[task.priority]||P.none;
+      const d=DB[task.dashboard];
+      const col=configs[task.dashboard]?.columns.find(c=>c.name===task.status);
+      const od=overdue(task.due,task.status,configs,task.dashboard);
+      const stDone=task.subtasks?.length?task.subtasks.filter(s=>{const sc=configs[task.dashboard]?.columns.find(c=>c.name===s.status);return sc?.archived;}).length:0;
+      return(
+        <div onClick={onClick} className="bg-white rounded-lg border border-gray-200 p-3 cursor-pointer hover:shadow-md hover:border-gray-300 transition-all group" style={{borderLeftWidth:3,borderLeftColor:col?.color||"#94a3b8"}}>
+          {showDash&&<span className="text-xs text-gray-400 mb-1 block"><Icon name={d?.icon||"circle"} size={10}/> {d?.name}</span>}
+          <h4 className="text-sm font-semibold text-gray-900 leading-snug mb-2 group-hover:text-blue-600 line-clamp-2">{task.title}</h4>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${p.bg} ${p.text} inline-flex items-center gap-0.5`}><Icon name={p.icon} size={10}/> {p.label}</span>
+              {task.subtasks?.length>0&&<span className="text-xs text-gray-400">{stDone}/{task.subtasks.length} sub</span>}
+              {task.comments?.length>0&&<span className="text-xs text-gray-400 flex items-center gap-0.5"><Icon name="message" size={10}/>{task.comments.length}</span>}
+            </div>
+            {task.due&&<span className={`text-xs flex items-center gap-0.5 ${od?"text-red-500 font-semibold":"text-gray-400"}`}><Icon name="calendar" size={10}/>{shortDate(task.due)}</span>}
+          </div>
+          <div className="flex items-center mt-2 -space-x-1.5">
+            {task.assignees.slice(0,3).map(a=><Avatar key={a} name={a}/>)}
+            {task.assignees.length===0&&<span className="text-xs text-gray-400 italic">Unassigned</span>}
+          </div>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — Kanban Board
+    ═══════════════════════════════════════════════ */
+    const Board=({tasks,configs,dashId,onTaskClick,onStatusChange,showDash})=>{
+      const cols=(configs[dashId]?.columns||[]).filter(c=>!c.archived);
+      const archived=(configs[dashId]?.columns||[]).filter(c=>c.archived);
+      const archivedCount=tasks.filter(t=>archived.some(a=>a.name===t.status)).length;
+      const [dragId,setDragId]=useState(null);
+      return(
+        <div>
+          <div className="flex gap-4 overflow-x-auto pb-4" style={{minHeight:300}}>
+            {cols.map(col=>{
+              const colTasks=tasks.filter(t=>t.status===col.name);
+              return(
+                <div key={col.id} className="flex-shrink-0 w-72" onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragId){onStatusChange(dragId,col.name);setDragId(null);}}}>
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{backgroundColor:col.color}}/>
+                    <h3 className="text-sm font-bold text-gray-700">{col.name}</h3>
+                    <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">{colTasks.length}</span>
+                  </div>
+                  <div className="space-y-2.5 p-1.5 rounded-lg bg-gray-50/60" style={{minHeight:48,maxHeight:"calc(100vh - 340px)",overflowY:"auto"}}>
+                    {colTasks.map(t=><div key={t.id} draggable onDragStart={()=>setDragId(t.id)}><Card task={t} onClick={()=>onTaskClick(t)} showDash={showDash} configs={configs}/></div>)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {archivedCount>0&&<p className="text-xs text-gray-400 mt-2 flex items-center gap-1"><Icon name="archive" size={13}/> {archivedCount} archived task{archivedCount!==1?"s":""} hidden from board (visible in list view)</p>}
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — List View
+    ═══════════════════════════════════════════════ */
+    const PTListView=({tasks,onTaskClick,configs,showDash,sortKey,sortDir,onSort})=>{
+      const SH=({k,children,cls=""})=>(
+        <th className={`text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-3 cursor-pointer hover:text-gray-700 select-none whitespace-nowrap ${cls}`} onClick={()=>onSort(k)}>
+          <span className="flex items-center gap-1">{children}{sortKey===k&&<Icon name={sortDir==="asc"?"arrow-up":"arrow-down"} size={11}/>}</span>
+        </th>
+      );
+      return(
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr><SH k="title" cls="min-w-[260px]">Task</SH>{showDash&&<SH k="dashboard">Dashboard</SH>}<SH k="status">Status</SH><SH k="priority">Priority</SH><SH k="assignees">Assignees</SH><SH k="due">Due</SH></tr>
+            </thead>
+            <tbody>
+              {tasks.map(t=>{
+                const p=P[t.priority]||P.none;const d=DB[t.dashboard];const col=configs[t.dashboard]?.columns.find(c=>c.name===t.status);const od=overdue(t.due,t.status,configs,t.dashboard);
+                return(
+                  <tr key={t.id} className="border-b border-gray-100 hover:bg-blue-50/40 cursor-pointer" onClick={()=>onTaskClick(t)} style={{borderLeftWidth:3,borderLeftColor:col?.color||"#94a3b8"}}>
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{t.title}{t.subtasks?.length>0&&<span className="text-xs text-gray-400 ml-1.5">({t.subtasks.length} sub)</span>}{t.comments?.length>0&&<span className="text-xs text-gray-400 ml-1"><Icon name="message" size={10}/></span>}</td>
+                    {showDash&&<td className="px-3 py-2.5 text-xs text-gray-600"><Icon name={d?.icon||"circle"} size={12}/> {d?.name}</td>}
+                    <td className="px-3 py-2.5"><span className="px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{backgroundColor:col?.color||"#94a3b8"}}>{t.status}</span></td>
+                    <td className="px-3 py-2.5"><span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium ${p.bg} ${p.text}`}><Icon name={p.icon} size={11}/> {p.label}</span></td>
+                    <td className="px-3 py-2.5"><div className="flex -space-x-1">{t.assignees.slice(0,3).map(a=><Avatar key={a} name={a}/>)}{t.assignees.length===0&&<span className="text-xs text-gray-400 italic">None</span>}</div></td>
+                    <td className={`px-3 py-2.5 whitespace-nowrap text-xs ${od?"text-red-600 font-semibold":"text-gray-500"}`}>{t.due?fmtDate(t.due):"—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    };
+
+    /* ═══════════════════════════════════════════════
+       PROJECT TRACKER — Main Component
+    ═══════════════════════════════════════════════ */
+    function ProjectTracker(){
+      const initial=loadProjects();
+      const [tasks,setTasks]=useState(initial.tasks);
+      const [configs,setConfigs]=useState(initial.configs);
+      const [activeDash,setActiveDash]=useState("overview");
+      const [view,setView]=useState("board");
+      const [search,setSearch]=useState("");
+      const [fPriority,setFPriority]=useState("");
+      const [fAssignee,setFAssignee]=useState("");
+      const [editing,setEditing]=useState(null);
+      const [showNew,setShowNew]=useState(false);
+      const [showColSettings,setShowColSettings]=useState(null);
+      const [sortKey,setSortKey]=useState("status");
+      const [sortDir,setSortDir]=useState("asc");
+      const [showFilters,setShowFilters]=useState(false);
+
+      useEffect(()=>{saveProjects(tasks,configs);},[tasks,configs]);
+
+      const isOv=activeDash==="overview";
+      const dashTasks=useMemo(()=>isOv?tasks:tasks.filter(t=>t.dashboard===activeDash),[tasks,activeDash]);
+
+      const filtered=useMemo(()=>{
+        let f=dashTasks;
+        if(search){const s=search.toLowerCase();f=f.filter(t=>t.title.toLowerCase().includes(s)||t.assignees.some(a=>a.toLowerCase().includes(s)));}
+        if(fPriority)f=f.filter(t=>t.priority===fPriority);
+        if(fAssignee)f=f.filter(t=>t.assignees.includes(fAssignee));
+        if(view==="list"||isOv){
+          const po={urgent:0,high:1,normal:2,low:3,none:4};
+          f=[...f].sort((a,b)=>{
+            let av,bv;
+            if(sortKey==="priority"){av=po[a.priority];bv=po[b.priority];}
+            else if(sortKey==="assignees"){av=(a.assignees[0]||"zzz").toLowerCase();bv=(b.assignees[0]||"zzz").toLowerCase();}
+            else if(sortKey==="dashboard"){av=a.dashboard;bv=b.dashboard;}
+            else{av=String(a[sortKey]||"zzz").toLowerCase();bv=String(b[sortKey]||"zzz").toLowerCase();}
+            return sortDir==="asc"?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0);
+          });
+        }
+        return f;
+      },[dashTasks,search,fPriority,fAssignee,view,sortKey,sortDir,isOv]);
+
+      const handleSort=k=>{if(sortKey===k)setSortDir(d=>d==="asc"?"desc":"asc");else{setSortKey(k);setSortDir("asc");}};
+      const saveTask=t=>setTasks(ts=>{const ex=ts.find(x=>x.id===t.id);return ex?ts.map(x=>x.id===t.id?t:x):[t,...ts];});
+      const deleteTask=id=>setTasks(ts=>ts.filter(t=>t.id!==id));
+      const changeStatus=(id,s)=>setTasks(ts=>ts.map(t=>t.id===id?{...t,status:s}:t));
+      const saveColumns=(dashId,cols)=>{
+        setConfigs(c=>({...c,[dashId]:{columns:cols}}));
+        const newNames=cols.map(c=>c.name);
+        setTasks(ts=>ts.map(t=>{
+          if(t.dashboard!==dashId)return t;
+          if(!newNames.includes(t.status))return{...t,status:cols[0]?.name||"To Do"};
+          return t;
+        }));
+      };
+
+      const cur=DB[activeDash]||DB.overview;
+      const af=[fPriority,fAssignee].filter(Boolean).length;
+      const activeCount=dashTasks.filter(t=>{const col=configs[t.dashboard]?.columns.find(c=>c.name===t.status);return!col?.archived;}).length;
+
+      return(
+        <div className="min-h-screen">
+          {/* Dashboard Tabs */}
+          <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+            <div className="px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 bg-gradient-to-br ${cur.color} rounded-lg flex items-center justify-center`}><Icon name={cur.icon} size={18} className="text-white"/></div>
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">Project Tracker</h1>
+                  <p className="text-xs text-gray-500">{dashTasks.length} tasks · {activeCount} active</p>
+                </div>
+              </div>
+              <button onClick={()=>setShowNew(true)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm"><Icon name="plus" size={16}/> New Task</button>
+            </div>
+            <div className="px-6">
+              <div className="flex gap-0.5 overflow-x-auto -mb-px">
+                {DASHBOARDS.map(d=>{
+                  const cnt=d.id==="overview"?tasks.length:tasks.filter(t=>t.dashboard===d.id).length;
+                  const act=activeDash===d.id;
+                  return(
+                    <div key={d.id} className="flex items-center">
+                      <button onClick={()=>{setActiveDash(d.id);setSearch("");setFPriority("");setFAssignee("");setShowFilters(false);}}
+                        className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${act?"text-gray-900":"border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
+                        style={act?{color:d.accent,borderColor:d.accent}:{borderColor:"transparent"}}>
+                        <Icon name={d.icon} size={14}/>{d.name}<span className={`text-xs rounded-full px-1.5 py-0.5 ${act?"bg-gray-200 text-gray-700":"bg-gray-100 text-gray-400"}`}>{cnt}</span>
+                      </button>
+                      {act&&d.id!=="overview"&&<button onClick={()=>setShowColSettings(d.id)} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded" title="Manage columns"><Icon name="settings" size={13}/></button>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-5">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="relative flex-1 min-w-[180px] max-w-sm">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2"><Icon name="search" size={15} className="text-gray-400"/></span>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search tasks..." className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-blue-400"/>
+              </div>
+              <button onClick={()=>setShowFilters(f=>!f)} className={`flex items-center gap-1.5 px-3 py-2 text-sm border rounded-lg ${showFilters||af?"bg-blue-50 border-blue-200 text-blue-700":"bg-white border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                <Icon name="filter" size={14}/> Filters {af>0&&<span className="bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{af}</span>}
+              </button>
+              {af>0&&<button onClick={()=>{setFPriority("");setFAssignee("");}} className="text-xs text-red-500 font-medium">Clear</button>}
+              {!isOv&&<div className="ml-auto flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-0.5">
+                <button onClick={()=>setView("board")} className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-md ${view==="board"?"bg-blue-100 text-blue-700 font-medium":"text-gray-500"}`}><Icon name="layout-grid" size={14}/> Board</button>
+                <button onClick={()=>setView("list")} className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-md ${view==="list"?"bg-blue-100 text-blue-700 font-medium":"text-gray-500"}`}><Icon name="list" size={14}/> List</button>
+              </div>}
+            </div>
+            {showFilters&&(
+              <div className="flex flex-wrap gap-3 mb-4 p-3 bg-white rounded-lg border border-gray-200">
+                <select value={fPriority} onChange={e=>setFPriority(e.target.value)} className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white"><option value="">All Priorities</option>{PRIORITIES.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}</select>
+                <select value={fAssignee} onChange={e=>setFAssignee(e.target.value)} className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white"><option value="">All Assignees</option>{TEAM.map(n=><option key={n} value={n}>{n}</option>)}</select>
+              </div>
+            )}
+            <p className="text-xs text-gray-400 mb-3">{filtered.length} tasks</p>
+            {isOv||view==="list"
+              ? <PTListView tasks={filtered} onTaskClick={setEditing} configs={configs} showDash={isOv} sortKey={sortKey} sortDir={sortDir} onSort={handleSort}/>
+              : <Board tasks={filtered} configs={configs} dashId={activeDash} onTaskClick={setEditing} onStatusChange={changeStatus} showDash={false}/>
+            }
+            {filtered.length===0&&<div className="text-center py-16"><Icon name="folder-open" size={40} className="mx-auto text-gray-300 mb-3"/><p className="text-gray-500 font-medium">No tasks found</p><button onClick={()=>setShowNew(true)} className="mt-3 text-sm text-blue-600 font-medium flex items-center gap-1 mx-auto"><Icon name="plus" size={14}/> Add a task</button></div>}
+          </div>
+
+          {editing&&<TaskDetail task={editing} configs={configs} onSave={t=>{saveTask(t);setEditing(null);}} onDelete={deleteTask} onClose={()=>setEditing(null)}/>}
+          {showNew&&<NewTaskModal configs={configs} activeDash={activeDash} onSave={saveTask} onClose={()=>setShowNew(false)}/>}
+          {showColSettings&&<ColumnSettings dashId={showColSettings} configs={configs} onSave={saveColumns} onClose={()=>setShowColSettings(null)}/>}
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════
+       COMPETITOR ANALYSIS — Main Component
+    ═══════════════════════════════════════════════ */
+    const COMP_CATEGORIES=["Estate Planning","Elder Law","Probate","Business Law","Tax Law","Personal Injury","Family Law","Other"];
+    const CONTENT_TYPES=["Blog Post","Video","Social Post","Ad Campaign","Landing Page","Webinar","Email Campaign","Podcast","Other"];
+    const SWOT_LABELS={strengths:{label:"Strengths",color:"bg-green-50 border-green-200",text:"text-green-700",icon:"trending-up"},weaknesses:{label:"Weaknesses",color:"bg-red-50 border-red-200",text:"text-red-700",icon:"alert-triangle"},opportunities:{label:"Opportunities",color:"bg-blue-50 border-blue-200",text:"text-blue-700",icon:"zap"},threats:{label:"Threats",color:"bg-amber-50 border-amber-200",text:"text-amber-700",icon:"shield"}};
+
+    function CompetitorAnalysis(){
+      const [data,setData]=useState(()=>loadCompetitors());
+      const [activeView,setActiveView]=useState("dashboard"); // dashboard, competitors, detail, content, swot
+      const [selectedComp,setSelectedComp]=useState(null);
+      const [showAddComp,setShowAddComp]=useState(false);
+      const [showAddContent,setShowAddContent]=useState(false);
+      const [search,setSearch]=useState("");
+
+      useEffect(()=>{saveCompetitors(data);},[data]);
+
+      const competitors=data.competitors||[];
+
+      // Add competitor
+      const addCompetitor=(comp)=>{
+        setData(d=>({...d,competitors:[...d.competitors,{...comp,id:gid(),createdAt:new Date().toISOString(),content:[],swot:{strengths:[],weaknesses:[],opportunities:[],threats:[]},notes:""}]}));
+      };
+      const updateCompetitor=(id,updates)=>{
+        setData(d=>({...d,competitors:d.competitors.map(c=>c.id===id?{...c,...updates}:c)}));
+      };
+      const deleteCompetitor=(id)=>{
+        setData(d=>({...d,competitors:d.competitors.filter(c=>c.id!==id)}));
+        if(selectedComp===id){setSelectedComp(null);setActiveView("dashboard");}
+      };
+      const addContent=(compId,content)=>{
+        setData(d=>({...d,competitors:d.competitors.map(c=>c.id===compId?{...c,content:[...c.content,{...content,id:gid(),addedAt:new Date().toISOString()}]}:c)}));
+      };
+      const deleteContent=(compId,contentId)=>{
+        setData(d=>({...d,competitors:d.competitors.map(c=>c.id===compId?{...c,content:c.content.filter(x=>x.id!==contentId)}:c)}));
+      };
+      const addSwotItem=(compId,category,text)=>{
+        setData(d=>({...d,competitors:d.competitors.map(c=>c.id===compId?{...c,swot:{...c.swot,[category]:[...c.swot[category],{id:gid(),text}]}}:c)}));
+      };
+      const deleteSwotItem=(compId,category,itemId)=>{
+        setData(d=>({...d,competitors:d.competitors.map(c=>c.id===compId?{...c,swot:{...c.swot,[category]:c.swot[category].filter(x=>x.id!==itemId)}}:c)}));
+      };
+
+      const comp=competitors.find(c=>c.id===selectedComp);
+      const allContent=competitors.flatMap(c=>c.content.map(x=>({...x,compName:c.name,compId:c.id})));
+      const filteredComps=search?competitors.filter(c=>c.name.toLowerCase().includes(search.toLowerCase())||c.website?.toLowerCase().includes(search.toLowerCase())):competitors;
+
+      /* ── Add Competitor Modal ── */
+      const AddCompModal=()=>{
+        const [f,setF]=useState({name:"",website:"",category:COMP_CATEGORIES[0],location:"",notes:""});
+        return(
+          <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-50" onClick={()=>setShowAddComp(false)}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4" onClick={e=>e.stopPropagation()}>
+              <div className="px-5 py-4 border-b flex items-center justify-between">
+                <h2 className="text-base font-bold flex items-center gap-2"><Icon name="plus" size={18}/> Add Competitor</h2>
+                <button onClick={()=>setShowAddComp(false)} className="p-1 hover:bg-gray-100 rounded"><Icon name="x" size={18}/></button>
+              </div>
+              <div className="px-5 py-4 space-y-4">
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Firm / Company Name *</label>
+                  <input value={f.name} onChange={e=>setF(p=>({...p,name:e.target.value}))} placeholder="e.g., Smith & Associates" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none" autoFocus/></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Website</label>
+                  <input value={f.website} onChange={e=>setF(p=>({...p,website:e.target.value}))} placeholder="https://example.com" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none"/></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1">Practice Area</label>
+                    <select value={f.category} onChange={e=>setF(p=>({...p,category:e.target.value}))} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white">{COMP_CATEGORIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1">Location</label>
+                    <input value={f.location} onChange={e=>setF(p=>({...p,location:e.target.value}))} placeholder="e.g., Boston, MA" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none"/></div>
+                </div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Notes</label>
+                  <textarea value={f.notes} onChange={e=>setF(p=>({...p,notes:e.target.value}))} rows={3} placeholder="Key observations, initial impressions..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none resize-none"/></div>
+              </div>
+              <div className="px-5 py-3 border-t flex justify-end gap-2">
+                <button onClick={()=>setShowAddComp(false)} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
+                <button onClick={()=>{if(f.name.trim()){addCompetitor(f);setShowAddComp(false);}}} disabled={!f.name.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-semibold rounded-lg">Add Competitor</button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      /* ── Add Content Modal ── */
+      const AddContentModal=({compId})=>{
+        const [f,setF]=useState({title:"",type:CONTENT_TYPES[0],url:"",date:"",notes:"",rating:3});
+        return(
+          <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-50" onClick={()=>setShowAddContent(false)}>
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4" onClick={e=>e.stopPropagation()}>
+              <div className="px-5 py-4 border-b flex items-center justify-between">
+                <h2 className="text-base font-bold flex items-center gap-2"><Icon name="plus" size={18}/> Track Content</h2>
+                <button onClick={()=>setShowAddContent(false)} className="p-1 hover:bg-gray-100 rounded"><Icon name="x" size={18}/></button>
+              </div>
+              <div className="px-5 py-4 space-y-4">
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Content Title *</label>
+                  <input value={f.title} onChange={e=>setF(p=>({...p,title:e.target.value}))} placeholder="e.g., '5 Estate Planning Mistakes'" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none" autoFocus/></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1">Type</label>
+                    <select value={f.type} onChange={e=>setF(p=>({...p,type:e.target.value}))} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white">{CONTENT_TYPES.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
+                  <div><label className="block text-xs font-semibold text-gray-500 mb-1">Date Spotted</label>
+                    <input type="date" value={f.date} onChange={e=>setF(p=>({...p,date:e.target.value}))} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg"/></div>
+                </div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">URL</label>
+                  <input value={f.url} onChange={e=>setF(p=>({...p,url:e.target.value}))} placeholder="https://..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none"/></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Quality (1-5)</label>
+                  <div className="flex gap-1">{[1,2,3,4,5].map(n=>(
+                    <button key={n} onClick={()=>setF(p=>({...p,rating:n}))} className={`w-8 h-8 rounded-lg text-sm font-medium border ${f.rating>=n?"bg-amber-100 border-amber-300 text-amber-700":"bg-white border-gray-200 text-gray-400"}`}>{n}</button>
+                  ))}</div></div>
+                <div><label className="block text-xs font-semibold text-gray-500 mb-1">Notes / Key Takeaways</label>
+                  <textarea value={f.notes} onChange={e=>setF(p=>({...p,notes:e.target.value}))} rows={3} placeholder="What makes this content effective? What can we learn?" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none resize-none"/></div>
+              </div>
+              <div className="px-5 py-3 border-t flex justify-end gap-2">
+                <button onClick={()=>setShowAddContent(false)} className="px-4 py-2 text-sm text-gray-600">Cancel</button>
+                <button onClick={()=>{if(f.title.trim()){addContent(compId,f);setShowAddContent(false);}}} disabled={!f.title.trim()} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white text-sm font-semibold rounded-lg">Add Content</button>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      /* ── Dashboard View ── */
+      const DashboardView=()=>(
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Competitor Dashboard</h2>
+              <p className="text-sm text-gray-500 mt-0.5">{competitors.length} competitors tracked · {allContent.length} content pieces logged</p>
+            </div>
+            <button onClick={()=>setShowAddComp(true)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm"><Icon name="plus" size={16}/> Add Competitor</button>
+          </div>
+
+          {competitors.length===0?(
+            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+              <Icon name="target" size={48} className="mx-auto text-gray-300 mb-4"/>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No competitors tracked yet</h3>
+              <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">Start by adding law firms or companies in your market. Track their content, analyze their strategy, and find opportunities.</p>
+              <button onClick={()=>setShowAddComp(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg"><Icon name="plus" size={14}/> Add Your First Competitor</button>
+            </div>
+          ):(
+            <div>
+              {/* Quick Stats */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                {[
+                  {label:"Competitors",value:competitors.length,icon:"target",color:"bg-purple-50 text-purple-600"},
+                  {label:"Content Tracked",value:allContent.length,icon:"file-text",color:"bg-blue-50 text-blue-600"},
+                  {label:"Avg Quality",value:allContent.length?(allContent.reduce((s,c)=>s+(c.rating||3),0)/allContent.length).toFixed(1):"—",icon:"award",color:"bg-amber-50 text-amber-600"},
+                  {label:"Recent (30d)",value:allContent.filter(c=>{const d=new Date(c.addedAt);const ago=Date.now()-d.getTime();return ago<30*24*60*60*1000;}).length,icon:"trending-up",color:"bg-green-50 text-green-600"},
+                ].map((s,i)=>(
+                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-2 mb-2"><div className={`w-8 h-8 rounded-lg flex items-center justify-center ${s.color}`}><Icon name={s.icon} size={16}/></div></div>
+                    <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+                    <p className="text-xs text-gray-500">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Competitor Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {competitors.map(c=>{
+                  const swotCount=Object.values(c.swot||{}).flat().length;
+                  return(
+                    <div key={c.id} onClick={()=>{setSelectedComp(c.id);setActiveView("detail");}} className="bg-white rounded-xl border border-gray-200 p-5 cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all group">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-600">{c.name}</h3>
+                          {c.website&&<p className="text-xs text-blue-500 mt-0.5 flex items-center gap-1"><Icon name="link" size={10}/> {c.website.replace(/^https?:\/\//,"").replace(/\/$/,"")}</p>}
+                        </div>
+                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{c.category}</span>
+                      </div>
+                      {c.location&&<p className="text-xs text-gray-500 mb-3 flex items-center gap-1"><Icon name="globe" size={11}/> {c.location}</p>}
+                      <div className="flex items-center gap-3 text-xs text-gray-500 border-t border-gray-100 pt-3">
+                        <span className="flex items-center gap-1"><Icon name="file-text" size={12}/> {c.content?.length||0} content</span>
+                        <span className="flex items-center gap-1"><Icon name="target" size={12}/> {swotCount} SWOT items</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+
+      /* ── Competitor Detail View ── */
+      const DetailView=()=>{
+        if(!comp) return <DashboardView/>;
+        const [activeTab,setActiveTab]=useState("overview"); // overview, content, swot
+        const [editNotes,setEditNotes]=useState(false);
+        const [notes,setNotes]=useState(comp.notes||"");
+        const [confirmDel,setConfirmDel]=useState(false);
+        const [swotInput,setSwotInput]=useState({strengths:"",weaknesses:"",opportunities:"",threats:""});
+
+        return(
+          <div>
+            {/* Back + Header */}
+            <div className="mb-6">
+              <button onClick={()=>{setActiveView("dashboard");setSelectedComp(null);}} className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-3"><Icon name="chevron-left" size={14}/> Back to Dashboard</button>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{comp.name}</h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    {comp.website&&<a href={comp.website} target="_blank" rel="noopener" className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"><Icon name="external-link" size={12}/> {comp.website.replace(/^https?:\/\//,"").replace(/\/$/,"")}</a>}
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{comp.category}</span>
+                    {comp.location&&<span className="text-xs text-gray-500 flex items-center gap-1"><Icon name="globe" size={11}/> {comp.location}</span>}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={()=>setShowAddContent(true)} className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg"><Icon name="plus" size={14}/> Track Content</button>
+                  {!confirmDel?<button onClick={()=>setConfirmDel(true)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><Icon name="trash" size={16}/></button>:
+                  <div className="flex items-center gap-2 bg-red-50 px-3 py-1 rounded-lg"><span className="text-xs text-red-600 font-medium">Delete?</span>
+                    <button onClick={()=>deleteCompetitor(comp.id)} className="px-2 py-1 bg-red-600 text-white text-xs rounded">Yes</button>
+                    <button onClick={()=>setConfirmDel(false)} className="px-2 py-1 bg-gray-200 text-xs rounded">No</button>
+                  </div>}
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-1 border-b border-gray-200 mb-6">
+              {[{id:"overview",label:"Overview",icon:"eye"},{id:"content",label:`Content (${comp.content?.length||0})`,icon:"file-text"},{id:"swot",label:"SWOT Analysis",icon:"target"}].map(tab=>(
+                <button key={tab.id} onClick={()=>setActiveTab(tab.id)} className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-all ${activeTab===tab.id?"text-blue-600 border-blue-600":"text-gray-500 border-transparent hover:text-gray-700"}`}><Icon name={tab.icon} size={14}/> {tab.label}</button>
+              ))}
+            </div>
+
+            {/* Overview Tab */}
+            {activeTab==="overview"&&(
+              <div className="grid grid-cols-3 gap-6">
+                <div className="col-span-2 space-y-6">
+                  {/* Notes */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-gray-700">Notes & Observations</h3>
+                      <button onClick={()=>{if(editNotes){updateCompetitor(comp.id,{notes});setEditNotes(false);}else setEditNotes(true);}} className="text-xs text-blue-600 font-medium flex items-center gap-1"><Icon name={editNotes?"check":"edit"} size={12}/> {editNotes?"Save":"Edit"}</button>
+                    </div>
+                    {editNotes?<textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={6} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-blue-400 outline-none resize-none"/>:
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{comp.notes||"No notes yet. Click Edit to add observations about this competitor."}</p>}
+                  </div>
+                  {/* Recent Content */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-gray-700">Recent Content</h3>
+                      <button onClick={()=>setActiveTab("content")} className="text-xs text-blue-600 font-medium">View All</button>
+                    </div>
+                    {(comp.content||[]).length===0?<p className="text-sm text-gray-400 italic">No content tracked yet</p>:
+                    <div className="space-y-2">{comp.content.slice(-5).reverse().map(c=>(
+                      <div key={c.id} className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2"><span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium">{c.type}</span><span className="text-sm font-medium text-gray-800">{c.title}</span></div>
+                        <div className="flex items-center gap-2"><span className="text-xs text-amber-500">{"★".repeat(c.rating||3)}</span>{c.date&&<span className="text-xs text-gray-400">{shortDate(c.date)}</span>}</div>
+                      </div>
+                    ))}</div>}
+                  </div>
+                </div>
+                {/* Sidebar Stats */}
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h3 className="text-sm font-bold text-gray-700 mb-3">Quick Stats</h3>
+                    <div className="space-y-3">
+                      {[
+                        {label:"Content Pieces",value:comp.content?.length||0,icon:"file-text"},
+                        {label:"SWOT Items",value:Object.values(comp.swot||{}).flat().length,icon:"target"},
+                        {label:"Avg Quality",value:comp.content?.length?(comp.content.reduce((s,c)=>s+(c.rating||3),0)/comp.content.length).toFixed(1):"—",icon:"award"},
+                        {label:"Tracked Since",value:new Date(comp.createdAt).toLocaleDateString("en-US",{month:"short",year:"numeric"}),icon:"calendar"},
+                      ].map((s,i)=>(
+                        <div key={i} className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500 flex items-center gap-1.5"><Icon name={s.icon} size={12}/> {s.label}</span>
+                          <span className="text-sm font-semibold text-gray-800">{s.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h3 className="text-sm font-bold text-gray-700 mb-3">Content by Type</h3>
+                    {comp.content?.length?
+                      <div className="space-y-2">{Object.entries(comp.content.reduce((acc,c)=>{acc[c.type]=(acc[c.type]||0)+1;return acc;},{})).sort((a,b)=>b[1]-a[1]).map(([type,count])=>(
+                        <div key={type} className="flex items-center justify-between">
+                          <span className="text-xs text-gray-600">{type}</span>
+                          <div className="flex items-center gap-2"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{width:`${(count/comp.content.length)*100}%`}}/></div><span className="text-xs font-medium text-gray-700">{count}</span></div>
+                        </div>
+                      ))}</div>:
+                    <p className="text-xs text-gray-400 italic">No content yet</p>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Content Tab */}
+            {activeTab==="content"&&(
+              <div>
+                {(comp.content||[]).length===0?(
+                  <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
+                    <Icon name="file-text" size={40} className="mx-auto text-gray-300 mb-3"/>
+                    <p className="text-gray-500 font-medium mb-2">No content tracked for {comp.name}</p>
+                    <button onClick={()=>setShowAddContent(true)} className="text-sm text-blue-600 font-medium flex items-center gap-1 mx-auto"><Icon name="plus" size={14}/> Track Content</button>
+                  </div>
+                ):(
+                  <div className="overflow-x-auto rounded-lg border border-gray-200">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 border-b"><tr>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase px-3 py-3">Title</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase px-3 py-3">Type</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase px-3 py-3">Quality</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase px-3 py-3">Date</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase px-3 py-3">Notes</th>
+                        <th className="text-left text-xs font-semibold text-gray-500 uppercase px-3 py-3 w-16"></th>
+                      </tr></thead>
+                      <tbody>{comp.content.slice().reverse().map(c=>(
+                        <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="px-3 py-2.5 font-medium text-gray-900">{c.url?<a href={c.url} target="_blank" rel="noopener" className="text-blue-600 hover:text-blue-700 flex items-center gap-1">{c.title} <Icon name="external-link" size={10}/></a>:c.title}</td>
+                          <td className="px-3 py-2.5"><span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium">{c.type}</span></td>
+                          <td className="px-3 py-2.5 text-amber-500 text-xs">{"★".repeat(c.rating||3)}{"☆".repeat(5-(c.rating||3))}</td>
+                          <td className="px-3 py-2.5 text-xs text-gray-500">{c.date?fmtDate(c.date):"—"}</td>
+                          <td className="px-3 py-2.5 text-xs text-gray-600 max-w-xs truncate">{c.notes||"—"}</td>
+                          <td className="px-3 py-2.5"><button onClick={()=>deleteContent(comp.id,c.id)} className="p-1 text-red-400 hover:text-red-600"><Icon name="trash" size={13}/></button></td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SWOT Tab */}
+            {activeTab==="swot"&&(
+              <div className="grid grid-cols-2 gap-4">
+                {Object.entries(SWOT_LABELS).map(([key,cfg])=>(
+                  <div key={key} className={`rounded-xl border p-5 ${cfg.color}`}>
+                    <h3 className={`text-sm font-bold ${cfg.text} flex items-center gap-1.5 mb-3`}><Icon name={cfg.icon} size={15}/> {cfg.label}</h3>
+                    <div className="space-y-2 mb-3">
+                      {(comp.swot?.[key]||[]).map(item=>(
+                        <div key={item.id} className="flex items-start justify-between gap-2 bg-white/70 rounded-lg px-3 py-2">
+                          <span className="text-sm text-gray-700">{item.text}</span>
+                          <button onClick={()=>deleteSwotItem(comp.id,key,item.id)} className="p-0.5 text-gray-400 hover:text-red-500 flex-shrink-0"><Icon name="x" size={13}/></button>
+                        </div>
+                      ))}
+                      {(comp.swot?.[key]||[]).length===0&&<p className="text-xs text-gray-400 italic px-1">No items yet</p>}
+                    </div>
+                    <div className="flex gap-2">
+                      <input value={swotInput[key]} onChange={e=>setSwotInput(p=>({...p,[key]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"&&swotInput[key].trim()){addSwotItem(comp.id,key,swotInput[key].trim());setSwotInput(p=>({...p,[key]:""}));}}} placeholder={`Add ${cfg.label.toLowerCase()}...`} className="flex-1 px-3 py-1.5 text-sm border border-gray-200/50 rounded-lg bg-white/80 focus:border-blue-400 outline-none"/>
+                      <button onClick={()=>{if(swotInput[key].trim()){addSwotItem(comp.id,key,swotInput[key].trim());setSwotInput(p=>({...p,[key]:""}));}}} className="px-3 py-1.5 bg-white text-sm font-medium rounded-lg border border-gray-200/50 hover:bg-gray-50">Add</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showAddContent&&<AddContentModal compId={comp.id}/>}
+          </div>
+        );
+      };
+
+      return(
+        <div className="min-h-screen">
+          <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+            <div className="px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center"><Icon name="target" size={18} className="text-white"/></div>
+                <div>
+                  <h1 className="text-lg font-bold text-gray-900">Competitor Analysis</h1>
+                  <p className="text-xs text-gray-500">{competitors.length} competitors · {allContent.length} content pieces</p>
+                </div>
+              </div>
+              {activeView==="dashboard"&&<div className="relative max-w-xs">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2"><Icon name="search" size={15} className="text-gray-400"/></span>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search competitors..." className="w-full pl-9 pr-3 py-2 text-sm bg-white border border-gray-200 rounded-lg outline-none focus:border-blue-400"/>
+              </div>}
+            </div>
+          </div>
+          <div className="px-6 py-5">
+            {activeView==="dashboard"&&<DashboardView/>}
+            {activeView==="detail"&&<DetailView/>}
+          </div>
+          {showAddComp&&<AddCompModal/>}
+        </div>
+      );
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR NAVIGATION & APP SHELL
+    ═══════════════════════════════════════════════ */
+    const SECTIONS=[
+      {id:"projects",label:"Projects",icon:"clipboard",color:"from-blue-500 to-blue-600"},
+      {id:"competitors",label:"Competitors",icon:"target",color:"from-purple-500 to-indigo-600"},
+    ];
+
+    function App(){
+      const [activeSection,setActiveSection]=useState("projects");
+      const [sidebarExpanded,setSidebarExpanded]=useState(false);
+
+      return(
+        <div className="flex min-h-screen bg-gray-50">
+          {/* Sidebar */}
+          <div className={`${sidebarExpanded?"w-52":"w-16"} bg-slate-900 flex flex-col items-center py-4 flex-shrink-0 transition-all duration-200 sticky top-0 h-screen`} onMouseEnter={()=>setSidebarExpanded(true)} onMouseLeave={()=>setSidebarExpanded(false)}>
+            {/* Logo */}
+            <div className={`mb-6 flex items-center ${sidebarExpanded?"px-4 w-full":"justify-center"}`}>
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">ML</span>
+              </div>
+              {sidebarExpanded&&<span className="ml-3 text-white font-bold text-sm whitespace-nowrap">Marketing Hub</span>}
+            </div>
+
+            {/* Nav Items */}
+            <div className="flex flex-col gap-1 w-full px-2">
+              {SECTIONS.map(s=>{
+                const active=activeSection===s.id;
+                return(
+                  <button key={s.id} onClick={()=>setActiveSection(s.id)} className={`sidebar-btn relative flex items-center gap-3 rounded-lg transition-all ${sidebarExpanded?"px-3 py-2.5":"px-0 py-2.5 justify-center"} ${active?"bg-white/15 text-white":"text-slate-400 hover:text-white hover:bg-white/5"}`}>
+                    <Icon name={s.icon} size={20}/>
+                    {sidebarExpanded&&<span className="text-sm font-medium whitespace-nowrap">{s.label}</span>}
+                    {!sidebarExpanded&&<span className="sidebar-tooltip">{s.label}</span>}
+                    {active&&<div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-blue-400 rounded-r"/>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Bottom section — future sections */}
+            <div className="mt-auto w-full px-2">
+              <div className={`border-t border-slate-700 pt-3 ${sidebarExpanded?"":"flex flex-col items-center"}`}>
+                {[
+                  {label:"Content Generator",icon:"edit",soon:true},
+                  {label:"Landing Pages",icon:"globe",soon:true},
+                  {label:"Ad Campaigns",icon:"zap",soon:true},
+                ].map(item=>(
+                  <div key={item.label} className={`sidebar-btn relative flex items-center gap-3 rounded-lg py-2 text-slate-600 cursor-default ${sidebarExpanded?"px-3":"px-0 justify-center"}`}>
+                    <Icon name={item.icon} size={18}/>
+                    {sidebarExpanded&&<><span className="text-xs whitespace-nowrap">{item.label}</span><span className="ml-auto text-xs bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded">Soon</span></>}
+                    {!sidebarExpanded&&<span className="sidebar-tooltip">{item.label} (Coming Soon)</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {activeSection==="projects"&&<ProjectTracker/>}
+            {activeSection==="competitors"&&<CompetitorAnalysis/>}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+</body>
+</html>
